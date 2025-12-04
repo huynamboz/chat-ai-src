@@ -1,17 +1,41 @@
 version: '3.8'
 services:
+  mongodb:
+    image: mongo:7.0
+    container_name: chat-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    networks:
+      - chat-network
+    environment:
+      MONGO_INITDB_DATABASE: chatdb
+
   chat-server:
     # Build từ Dockerfile trong thư mục hiện tại
     build: .
     container_name: chat-server
     ports:
       # Ánh xạ port: <máy_host>:<container>
-      # Đổi "3000:3000" cho phù hợp
-      - "3000:3000"
+      # Đổi "3001:3001" cho phù hợp
+      - "3001:3001"
     restart: unless-stopped
+    depends_on:
+      - mongodb
     env_file:
       - .env
+    networks:
+      - chat-network
     # volumes:
     #   # Nếu server cần lưu data (ví dụ: chat logs, db),
     #   # hãy mount một volume
     #   - ./chat_data:/usr/src/app/data
+
+volumes:
+  mongodb_data:
+
+networks:
+  chat-network:
+    driver: bridge
